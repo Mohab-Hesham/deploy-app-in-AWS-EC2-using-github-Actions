@@ -80,26 +80,26 @@ jobs:
         run: terraform apply --auto-approve
       
 
-
-        # #####################
+  
+      
        
-        #   deploy-application:
-        #     needs: deploy-infrastructure
-        #     runs-on: ubuntu-latest
-        #     steps:
-        #       - name: Download Artifact
-        #         uses: actions/download-artifact@v2
-        #         with:
-        #           name: packaged-application
+  deploy-application:
+       needs: test-and-package
+       runs-on: ubuntu-latest
+       steps:
+              - name: Download Artifact
+                uses: actions/download-artifact@v2
+                with:
+                  name: packaged-application
               
-        #       - name: Deploy to AWS EC2
-        #         run: |
-        #           # Add your deployment commands here. This might involve copying the application
-        #           # package to your server, unpacking it, and running any necessary setup commands.
-        #           # You'll likely use SCP and SSH commands, which require setting up secrets for
-        #           # server access and the server's IP address.
-        #           echo "Deploy application to the server"
-        #         env:
-        #           SERVER_IP: ${{ secrets.SERVER_IP }}
-        #           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+              - name: Deploy to AWS EC2
+                run: |
+                  # Add your deployment commands here. This might involve copying the application
+                  # package to your server, unpacking it, and running any necessary setup commands.
+                  # You'll likely use SCP and SSH commands, which require setting up secrets for
+                  # server access and the server's IP address.
+                  echo "Deploy application to the server"
+                env:
+                  SERVER_IP: ${{ secrets.SERVER_IP }}
+                  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         
