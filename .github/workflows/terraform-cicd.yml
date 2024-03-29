@@ -86,7 +86,7 @@ jobs:
               - name: Download Artifact
                 uses: actions/download-artifact@v2
                 with:
-                  name: packaged-application
+                  name: my_flask_app_package
               
               - name: Deploy to AWS EC2
                 run: |
