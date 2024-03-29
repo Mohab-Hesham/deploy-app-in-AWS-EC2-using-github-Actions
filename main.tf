@@ -1,41 +1,24 @@
-# # Creating VPC
-# resource "aws_vpc" "demovpc" {
-#   cidr_block       = var.vpc_cidr
-#   instance_tenancy = "default"
 
-#   tags = {
-#     Name = "Demo VPC"
-#   }
-# }
+resource "aws_key_pair" "deployer_key" {
+  key_name   = "ec2-deployer-key"
+  public_key = file("${path.module}/ec2-deployer-key.pub")
+}
 
-# # Creating Internet Gateway 
-# resource "aws_internet_gateway" "demogateway" {
-#   vpc_id = aws_vpc.demovpc.id
-# }
+resource "aws_instance" "app_instance" {
+  ami           = "ami-0c02fb55956c7d316"  # Use an appropriate AMI for your region
+  instance_type = "t2.micro"
+  key_name      = aws_key_pair.deployer_key.key_name
 
-# # Grant the internet access to VPC by updating its main route table
-# resource "aws_route" "internet_access" {
-#   route_table_id         = aws_vpc.demovpc.main_route_table_id
-#   destination_cidr_block = "0.0.0.0/0"
-#   gateway_id             = aws_internet_gateway.demogateway.id
-# }
+  tags = {
+    Name = "MyAppInstance"
+  }
 
-# # Creating 1st subnet 
-# resource "aws_subnet" "demosubnet1" {
-#   vpc_id                  = aws_vpc.demovpc.id
-#   cidr_block             = var.subnet1_cidr
-#   map_public_ip_on_launch = true
-#   tags = {
-#     Name = "Demo subnet 1"
-#   }
-# }
+  # Outputs to fetch the instance IP after creation
+  provisioner "local-exec" {
+    command = "echo ${self.public_ip} > instance_ip.txt"
+  }
+}
 
-# # Creating 2nd subnet 
-# resource "aws_subnet" "demosubnet2" {
-#   vpc_id                  = aws_vpc.demovpc.id
-#   cidr_block             = var.subnet2_cidr
-#   map_public_ip_on_launch = true
-#   tags = {
-#     Name = "Demo subnet 2"
-#   }
-# }
+output "instance_public_ip" {
+  value = aws_instance.app_instance.public_ip
+}
