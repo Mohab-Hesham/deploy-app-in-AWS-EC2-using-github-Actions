@@ -1,4 +1,4 @@
-name: Terraform-GitHub-Actions
+name: Python Application Deployment with Terraform
 on:
   workflow_dispatch:
     inputs:
@@ -11,6 +11,50 @@ env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 jobs:
+
+  test-and-package:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Create virtual environment
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run tests
+      run: |
+        python -m unittest discover -s my_package/tests -p 'test_*.py'
+        
+    - name: Lint with pylint
+      run: |
+        pip install pylint
+        pylint my_package/main.py
+
+    - name: Build package
+      run: |
+        python setup.py sdist bdist_wheel
+        mkdir artifacts
+        mv dist/* artifacts/
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: my_flask_app_package
+        path: artifacts/
+
   buildt:
     name: build
     runs-on: ubuntu-latest
@@ -33,3 +77,27 @@ jobs:
       - name: Terraform Apply
         run: terraform apply --auto-approve
       
+
+
+        # #####################
+       
+        #   deploy-application:
+        #     needs: deploy-infrastructure
+        #     runs-on: ubuntu-latest
+        #     steps:
+        #       - name: Download Artifact
+        #         uses: actions/download-artifact@v2
+        #         with:
+        #           name: packaged-application
+              
+        #       - name: Deploy to AWS EC2
+        #         run: |
+        #           # Add your deployment commands here. This might involve copying the application
+        #           # package to your server, unpacking it, and running any necessary setup commands.
+        #           # You'll likely use SCP and SSH commands, which require setting up secrets for
+        #           # server access and the server's IP address.
+        #           echo "Deploy application to the server"
+        #         env:
+        #           SERVER_IP: ${{ secrets.SERVER_IP }}
+        #           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        
